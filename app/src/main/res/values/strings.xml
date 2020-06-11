@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Absens.id</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="swipe_left_for_login_teacher">Swipe Left for Sign In as Teacher</string>
+    <string name="login">Sign In</string>
+    <string name="password">Password</string>
+    <string name="e_mail">Email</string>
+    <string name="tag">Let\'s join us and \nBuild your relationship with others</string>
+    <string name="swipe_right_for_login_student">Swipe Right for Sign In as Student</string>
+    <string name="register">Register</string>
+    <string name="re_type_password">Re-type Password</string>
+    <string name="your_name">Full Name</string>
+    <string name="text_username">Username</string>
+    <string name="text_nis">Nomor Induk Siswa (NIS)</string>
+</resources>

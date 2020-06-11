@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.absensid">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".ui.ImageViewerActivity"
+            android:theme="@style/AppTheme.Authentication" />
+        <activity
+            android:name=".ui.student.StudentAbsensiActivity"
+            android:theme="@style/AppTheme.MainHome" />
+        <activity
+            android:name=".ui.teacher.TeacherMainActivity"
+            android:theme="@style/AppTheme.MainHome" />
+        <activity
+            android:name=".ui.student.StudentMainActivity"
+            android:theme="@style/AppTheme.MainHome" />
+        <activity
+            android:name=".ui.SplashScreenActivity"
+            android:theme="@style/AppTheme.Authentication">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.auth.AuthenticationActivity"
+            android:theme="@style/AppTheme.Authentication"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".MainActivity" />
+    </application>
+
+</manifest>
