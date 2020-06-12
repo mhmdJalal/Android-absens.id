@@ -46,7 +46,7 @@ class LoginStudentFragment : Fragment() {
                 loadingDialog.dismiss()
                 fragmentContext.startActivity<StudentMainActivity>()
                 activity?.finish()
-            }, 3000)
+            }, 1500)
         }
     }
 

@@ -48,7 +48,7 @@ class LoginTeacherFragment : Fragment() {
                 loadingDialog.dismiss()
                 fragmentContext.startActivity<TeacherMainActivity>()
                 activity?.finish()
-            }, 3000)
+            }, 1500)
         }
     }
 }

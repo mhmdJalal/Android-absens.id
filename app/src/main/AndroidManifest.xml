@@ -1,18 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.absensid">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
+        android:name=".core.App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.ImageViewerActivity"
+        <activity android:name=".ui.teacher.TeacherFormAbsensiActivity"
+            android:theme="@style/AppTheme.MainHome" />
+        <activity android:name=".ui.teacher.TeacherAbsensiActivity"
+            android:theme="@style/AppTheme.MainHome" />
+        <activity
+            android:name=".ui.student.StudentFormAbsensiActivity"
+            android:theme="@style/AppTheme.MainHome" />
+        <activity
+            android:name=".ui.FotoPickerActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.Authentication"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".ui.permission.PermissionActivity"
+            android:theme="@style/AppTheme.Authentication" />
+        <activity
+            android:name=".ui.ImageViewerActivity"
             android:theme="@style/AppTheme.Authentication" />
         <activity
             android:name=".ui.student.StudentAbsensiActivity"
@@ -37,6 +64,20 @@
             android:theme="@style/AppTheme.Authentication"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".MainActivity" />
+
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.com.example.absensid.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+        <meta-data
+            android:name="com.google.android.gms.vision.DEPENDENCIES"
+            android:value="face" />
     </application>
 
 </manifest>
