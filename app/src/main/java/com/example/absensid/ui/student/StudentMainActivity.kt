@@ -1,6 +1,8 @@
 package com.example.absensid.ui.student
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
@@ -13,11 +15,16 @@ import com.example.absensid.ui.auth.AuthenticationActivity
 import com.example.absensid.ui.permission.PermissionActivity
 import kotlinx.android.synthetic.main.activity_student_main.*
 import org.jetbrains.anko.startActivity
+import org.jetbrains.anko.toast
 
 class StudentMainActivity : AppCompatActivity() {
 
     private lateinit var loadingDialog: LoadingDialog
     private lateinit var alert: Alert
+
+    companion object {
+        private const val REQ_PERMISSION = 100
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +47,13 @@ class StudentMainActivity : AppCompatActivity() {
             }
         }
         btn_presence.setOnClickListener {
-            startActivity<StudentFormAbsensiActivity>()
+            if (locationNotGranted() || storageNotGranted() || cameraNotGranted()) {
+                toast("Allow permissions before continuing")
+                val intent = Intent(this, PermissionActivity::class.java)
+                startActivityForResult(intent, REQ_PERMISSION)
+            } else {
+                startActivity<StudentFormAbsensiActivity>()
+            }
         }
         btn_seemore.setOnClickListener {
             startActivity<StudentAbsensiActivity>()
@@ -63,5 +76,17 @@ class StudentMainActivity : AppCompatActivity() {
 
     private fun cameraNotGranted(): Boolean {
         return ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_PERMISSION && resultCode == Activity.RESULT_OK) {
+            val permissions = data?.getIntExtra("permissions", 0)
+            if (permissions != null) {
+                if (permissions >= 3) {
+                    startActivity<StudentFormAbsensiActivity>()
+                }
+            }
+        }
     }
 }

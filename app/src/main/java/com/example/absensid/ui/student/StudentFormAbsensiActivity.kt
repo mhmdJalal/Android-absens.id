@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
+import android.location.Location
 import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +14,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.SparseArray
 import androidx.core.app.ActivityCompat
+import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import com.example.absensid.R
 import com.example.absensid.core.Alert
@@ -21,9 +23,14 @@ import com.example.absensid.ui.ImageViewerActivity
 import com.example.absensid.util.gone
 import com.example.absensid.util.underlineText
 import com.example.absensid.util.visible
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.vision.Frame
 import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetectorOptions
 import kotlinx.android.synthetic.main.activity_student_form_absensi.*
 import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.toast
@@ -34,11 +41,15 @@ import java.io.IOException
 class StudentFormAbsensiActivity : AppCompatActivity() {
 
     private lateinit var alert: Alert
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private var imageSelfie: Bitmap? = null
     private var temporaryImagePath: String? = null
     private var temporaryFileName: String = "image_selfie"
     private var tempNamaGambar: String? = null
+
+    private var latitude: Double = 0.0
+    private var longitude: Double = 0.0
 
     companion object {
         const val REQ_CAMERA = 212
@@ -50,27 +61,29 @@ class StudentFormAbsensiActivity : AppCompatActivity() {
         setContentView(R.layout.activity_student_form_absensi)
 
         alert = Alert(this)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        getLastLocation()
 
         image_back.setOnClickListener {
             super.onBackPressed()
         }
 
-        tv_location.text = HtmlCompat.fromHtml("<u><font color=#42a5f5>-6.661729, 106.772752</font></u>", HtmlCompat.FROM_HTML_MODE_COMPACT)
         tv_location.setOnClickListener {
-            val lat = -6.661729
-            val long = 106.772752
-            val gmmIntentUri: Uri = Uri.parse("geo:$lat,$long")
+            val gmmIntentUri: Uri = Uri.parse("geo:$latitude,$longitude")
             val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
             mapIntent.data = gmmIntentUri
             mapIntent.setPackage("com.google.android.apps.maps")
             if (mapIntent.resolveActivity(packageManager) != null) {
                 startActivity(mapIntent)
             } else {
-                val uri = "https://www.google.com/maps/search/?api=1&query=$lat,$long"
+                val uri = "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude"
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
                 intent.data = Uri.parse(uri)
                 startActivity(intent)
             }
+        }
+        image_sync_location.setOnClickListener {
+            getLastLocation()
         }
         layout_image_temp.setOnClickListener {
             photoLayoutOnClick()
@@ -78,9 +91,13 @@ class StudentFormAbsensiActivity : AppCompatActivity() {
         image_selfie.setOnClickListener {
             val urls = ArrayList<String>()
             urls.add(temporaryImagePath.toString())
-            startActivity<ImageViewerActivity>("urls" to urls)
+            startActivity<ImageViewerActivity>("urls" to urls, "isFile" to true)
         }
         iv_cancel_image.setOnClickListener {
+            val file = File(temporaryImagePath)
+            if (file.exists()) {
+                file.delete()
+            }
             imageSelfie = null
             temporaryImagePath = null
             tempNamaGambar = null
@@ -89,6 +106,27 @@ class StudentFormAbsensiActivity : AppCompatActivity() {
             iv_cancel_image.gone()
             layout_image_temp.visible()
         }
+        btn_save.setOnClickListener {
+            alert.confirmation(message = "Is the data appropriate?", cancelable = false, positiveMessage = "Yes", negativeMessage = "No") {
+                alert.dismiss()
+                finish()
+            }
+        }
+    }
+
+    private fun getLastLocation() {
+        toast("Start location synchronization...")
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location : Location? ->
+                if (location != null) {
+                    latitude = location.latitude
+                    longitude = location.longitude
+                    val latLong = "${location.latitude}, ${location.longitude}"
+                    tv_location.text = HtmlCompat.fromHtml("<u><font color=#42a5f5>$latLong</font></u>", HtmlCompat.FROM_HTML_MODE_COMPACT)
+                } else {
+                    toast("Failed to get location")
+                }
+            }
     }
 
     private fun photoLayoutOnClick() {
@@ -125,52 +163,43 @@ class StudentFormAbsensiActivity : AppCompatActivity() {
                 val xnmiamge = data?.getStringExtra("namaFile") ?: return
                 val photoFile = File(path, "$xnmiamge.jpg")
                 val img = BitmapFactory.decodeFile(photoFile.absolutePath)
-                val tempImage = Bitmap.createBitmap(img.width, img.height, Bitmap.Config.RGB_565);
 
-                val canvas = Canvas(tempImage)
-                canvas.drawBitmap(tempImage, 0f, 0f, null)
-
-                val faceDetector = FaceDetector.Builder(applicationContext)
-                    .setTrackingEnabled(false)
+                val highAccuracyOpts = FaceDetectorOptions.Builder()
+                    .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                    .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+                    .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
                     .build()
 
-                if (!faceDetector.isOperational) {
-                    alert.dialog("Could not set up the face detector!")
-                    return
-                }
+                val image = InputImage.fromBitmap(img, 0)
+                val detector = FaceDetection.getClient(highAccuracyOpts)
+                val result = detector.process(image)
+                    .addOnSuccessListener { faces ->
+                        if (faces.isNotEmpty()) {
+                            if (faces.size == 1) {
+                                imageSelfie = Bitmap.createScaledBitmap(img, img.width, img.height, false)
+                                temporaryImagePath = photoFile.absolutePath
+                                tempNamaGambar = photoFile.name
 
-                val frame: Frame = Frame.Builder().setBitmap(tempImage).build()
-                val faces: SparseArray<Face> = faceDetector.detect(frame)
-
-                val myRectPaint = Paint()
-                myRectPaint.strokeWidth = 5f
-                myRectPaint.color = Color.RED
-                myRectPaint.style = Paint.Style.STROKE
-
-                for (i in 0 until faces.size()) {
-                    val thisFace = faces.valueAt(i)
-                    val x1 = thisFace.position.x
-                    val y1 = thisFace.position.y
-                    val x2 = x1 + thisFace.width
-                    val y2 = y1 + thisFace.height
-                    canvas.drawRoundRect(RectF(x1, y1, x2, y2), 2f, 2f, myRectPaint)
-                }
-                image_selfie.setImageDrawable(BitmapDrawable(resources, tempImage))
-
-                imageSelfie = tempImage
-                temporaryImagePath = photoFile.absolutePath
-                tempNamaGambar = photoFile.name
-
-                image_selfie.setImageBitmap(imageSelfie)
-                card_image_selfie.visible()
-                iv_cancel_image.visible()
-                layout_image_temp.gone()
+                                image_selfie.setImageBitmap(imageSelfie)
+                                card_image_selfie.visible()
+                                iv_cancel_image.visible()
+                                layout_image_temp.gone()
+                            } else {
+                                toast("More than one face, please take your own picture")
+                            }
+                        } else {
+                            toast("No faces in the image were detected")
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        toast("Failed to scan image")
+                    }
 
             } catch (e: FileNotFoundException) {
-                alert.dialog("Maaf terjadi kesalahan, silahkan coba kembali")
+                alert.dialog("Sorry, an error occurred, please try again")
                 return
             } catch (e: IOException) {
-                alert.dialog("Maaf terjadi kesalahan, silahkan coba kembali")
+                alert.dialog("Sorry, an error occurred, please try again")
                 return
             }
         }

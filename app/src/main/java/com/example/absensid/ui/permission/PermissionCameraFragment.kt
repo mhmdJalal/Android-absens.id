@@ -26,6 +26,8 @@ class PermissionCameraFragment : Fragment() {
 
     private lateinit var fragmentContext: Context
 
+    private var permissionsGranted: List<String> = arrayListOf()
+
     companion object {
         const val PERMISSION_CAMERA = 202
     }
@@ -45,6 +47,7 @@ class PermissionCameraFragment : Fragment() {
 
         viewModel.permissionsGranted.observe(viewLifecycleOwner, Observer {
             if (it != null) {
+                permissionsGranted = it
                 for (item in it) {
                     if (item == "camera") {
                         btn_granted.gone()
@@ -65,7 +68,10 @@ class PermissionCameraFragment : Fragment() {
             }
         }
         btn_finish.setOnClickListener {
-            activity?.finish()
+            val activity = (fragmentContext as PermissionActivity)
+            activity.intent.putExtra("permissions", permissionsGranted.size)
+            activity.setResult(Activity.RESULT_OK, activity.intent)
+            activity.finish()
         }
     }
 

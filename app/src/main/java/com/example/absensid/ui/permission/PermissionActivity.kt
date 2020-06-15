@@ -1,6 +1,7 @@
 package com.example.absensid.ui.permission
 
 import android.Manifest
+import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -30,6 +31,16 @@ class PermissionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_permission)
 
+        if (locationGranted()) {
+            permissionsGranted.add("location")
+        }
+        if (storageGranted()) {
+            permissionsGranted.add("storage")
+        }
+        if (cameraGranted()) {
+            permissionsGranted.add("camera")
+        }
+
         pagerAdapter =
             PermissionPagerAdapter(
                 supportFragmentManager
@@ -42,16 +53,23 @@ class PermissionActivity : AppCompatActivity() {
         circleIndicator.setViewPager(viewPager)
     }
 
-    private fun locationNotGranted(): Boolean {
-        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+    override fun onBackPressed() {
+//        super.onBackPressed()
+        intent.putExtra("permissions", permissionsGranted.size)
+        setResult(Activity.RESULT_OK, intent)
+        finish()
     }
 
-    private fun storageNotGranted(): Boolean {
-        return ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+    private fun locationGranted(): Boolean {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun cameraNotGranted(): Boolean {
-        return ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+    private fun storageGranted(): Boolean {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun cameraGranted(): Boolean {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
     }
 
     class PermissionPagerAdapter(fm: FragmentManager): FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {

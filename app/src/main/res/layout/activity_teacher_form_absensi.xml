@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:gravity="center"
-            android:text="Form Absensi"
+            android:text="Attendance Form"
             android:textColor="@color/colorWhite"
             android:textSize="17sp"
             android:textStyle="bold"
@@ -160,7 +160,7 @@
                 android:layout_marginTop="@dimen/space_small"
                 android:layout_marginEnd="25dp"
                 android:tooltipText="Tap to open"
-                android:text="-6.661729, 106.772752"
+                android:text="-"
                 android:textColor="@color/colorBlue"
                 android:textSize="15sp"
                 android:fontFamily="@font/robotoregular"
@@ -170,6 +170,7 @@
                 app:layout_constraintEnd_toEndOf="parent"/>
 
             <ImageView
+                android:id="@+id/image_sync_location"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_small"
@@ -180,7 +181,7 @@
 
             <Button
                 style="?borderlessButtonStyle"
-                android:id="@+id/closeimgviwer"
+                android:id="@+id/btn_save"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:gravity="center"

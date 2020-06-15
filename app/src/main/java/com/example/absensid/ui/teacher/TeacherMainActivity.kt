@@ -13,6 +13,7 @@ import com.example.absensid.ui.auth.AuthenticationActivity
 import com.example.absensid.ui.permission.PermissionActivity
 import kotlinx.android.synthetic.main.activity_teacher_main.*
 import org.jetbrains.anko.startActivity
+import org.jetbrains.anko.toast
 
 class TeacherMainActivity : AppCompatActivity() {
 
@@ -40,7 +41,12 @@ class TeacherMainActivity : AppCompatActivity() {
             }
         }
         btn_presence.setOnClickListener {
-            startActivity<TeacherFormAbsensiActivity>()
+            if (locationNotGranted() || storageNotGranted() || cameraNotGranted()) {
+                toast("Allow permissions before continuing")
+                startActivity<PermissionActivity>()
+            } else {
+                startActivity<TeacherFormAbsensiActivity>()
+            }
         }
         btn_seemore.setOnClickListener {
             startActivity<TeacherAbsensiActivity>()
